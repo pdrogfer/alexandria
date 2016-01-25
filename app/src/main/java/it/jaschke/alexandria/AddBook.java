@@ -40,7 +40,8 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     private String mScanFormat = "Format:";
     private String mScanContents = "Contents:";
 
-
+    private boolean useAutoFocus = true;
+    private boolean useFlash = false;
 
     public AddBook(){
     }
@@ -127,6 +128,8 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 } else {
                     text = "This button should let you scan a book for its barcode!";
                     Intent intent = new Intent(getActivity(), BarcodeCaptureActivity.class);
+                    intent.putExtra(BarcodeCaptureActivity.AutoFocus, useAutoFocus);
+                    intent.putExtra(BarcodeCaptureActivity.UseFlash, useFlash);
                     startActivity(intent);
                 }
                 //Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
