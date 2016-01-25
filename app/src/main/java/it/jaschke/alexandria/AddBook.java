@@ -52,11 +52,21 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         }
     }
 
+    // Helper method to encapsulate Network State Check
+    private boolean areWeOnline(Context c) {
+        ConnectivityManager cManager =
+                (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cManager.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isAvailable() && netInfo.isConnectedOrConnecting();
+    }
+
     @Override
-    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
         rootView = inflater.inflate(R.layout.fragment_add_book, container, false);
         ean = (EditText) rootView.findViewById(R.id.ean);
+        final Context context = rootView.getContext();
 
         ean.addTextChangedListener(new TextWatcher() {
             @Override
@@ -72,12 +82,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             @Override
             public void afterTextChanged(Editable s) {
 
-                
-                ConnectivityManager connectivityManager = (ConnectivityManager) getActivity()
-                        .getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo netInfo = connectivityManager.getActiveNetworkInfo();
-                if (netInfo != null && netInfo.isAvailable() && netInfo.isConnectedOrConnecting()) {
-
+                if (areWeOnline(context)) {
                     String ean =s.toString();
                     //catch isbn10 numbers
                     if(ean.length()==10 && !ean.startsWith("978")){
@@ -88,14 +93,15 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                         return;
                     }
                     //Once we have an ISBN, start a book intent
-                    Intent bookIntent = new Intent(getActivity(), BookService.class);
+                    Intent bookIntent = new Intent(context, BookService.class);
                     bookIntent.putExtra(BookService.EAN, ean);
                     bookIntent.setAction(BookService.FETCH_BOOK);
-                    getActivity().startService(bookIntent);
+                    context.startService(bookIntent);
                     AddBook.this.restartLoader();
 
                 } else {
-                    Toast.makeText(getActivity(), "Sorry, no Internet Connection available", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getActivity(), "Sorry, no Internet Connection available",
+                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -111,13 +117,15 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 // Hint: Use a Try/Catch block to handle the Intent dispatch gracefully, if you
                 // are using an external app.
                 //when you're done, remove the toast below.
-                Context context = getActivity();
-                CharSequence text = "This button should let you scan a book for its barcode!";
-                int duration = Toast.LENGTH_SHORT;
 
-                Toast toast = Toast.makeText(context, text, duration);
-                toast.show();
-
+                //First check connection
+                String text;
+                if (!areWeOnline(context)) {
+                    text = "No internet Connection!";
+                } else {
+                    text = "This button should let you scan a book for its barcode!";
+                }
+                Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
             }
         });
 
