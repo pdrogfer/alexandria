@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -69,21 +71,34 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
 
             @Override
             public void afterTextChanged(Editable s) {
-                String ean =s.toString();
-                //catch isbn10 numbers
-                if(ean.length()==10 && !ean.startsWith("978")){
-                    ean="978"+ean;
-                }
-                if(ean.length()<13){
-                    clearFields();
+
+                
+                ConnectivityManager connectivityManager = (ConnectivityManager) getActivity()
+                        .getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo netInfo = connectivityManager.getActiveNetworkInfo();
+                if (netInfo != null && netInfo.isAvailable() && netInfo.isConnectedOrConnecting()) {
+
+                    String ean =s.toString();
+                    //catch isbn10 numbers
+                    if(ean.length()==10 && !ean.startsWith("978")){
+                        ean="978"+ean;
+                    }
+                    if(ean.length()<13){
+                        clearFields();
+                        return;
+                    }
+                    //Once we have an ISBN, start a book intent
+                    Intent bookIntent = new Intent(getActivity(), BookService.class);
+                    bookIntent.putExtra(BookService.EAN, ean);
+                    bookIntent.setAction(BookService.FETCH_BOOK);
+                    getActivity().startService(bookIntent);
+                    AddBook.this.restartLoader();
+
+                } else {
+                    Toast.makeText(getActivity(), "Sorry, no Internet Connection available", Toast.LENGTH_LONG).show();
                     return;
                 }
-                //Once we have an ISBN, start a book intent
-                Intent bookIntent = new Intent(getActivity(), BookService.class);
-                bookIntent.putExtra(BookService.EAN, ean);
-                bookIntent.setAction(BookService.FETCH_BOOK);
-                getActivity().startService(bookIntent);
-                AddBook.this.restartLoader();
+
             }
         });
 
