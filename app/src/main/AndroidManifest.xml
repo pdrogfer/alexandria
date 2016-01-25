@@ -31,8 +31,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-
-
+        <activity
+            android:name=".mCamera.BarcodeCaptureActivity"
+            android:label="Read Barcode" >
+        </activity>
 
         <provider
             android:name=".data.BookProvider"

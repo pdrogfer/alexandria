@@ -1,6 +1,7 @@
 package it.jaschke.alexandria;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -22,7 +23,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import it.jaschke.alexandria.CameraPreview.CameraPreview;
 import it.jaschke.alexandria.data.AlexandriaContract;
+import it.jaschke.alexandria.mCamera.BarcodeCaptureActivity;
 import it.jaschke.alexandria.services.BookService;
 import it.jaschke.alexandria.services.DownloadImage;
 
@@ -121,11 +124,14 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 //First check connection
                 String text;
                 if (!areWeOnline(context)) {
+                    // TODO: 25/01/16 Use an AlertDialog to notify user, not a Toast
                     text = "No internet Connection!";
                 } else {
                     text = "This button should let you scan a book for its barcode!";
+                    Intent intent = new Intent(getActivity(), BarcodeCaptureActivity.class);
+                    startActivity(intent);
                 }
-                Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
             }
         });
 
