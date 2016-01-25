@@ -22,8 +22,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
-import it.jaschke.alexandria.CameraPreview.CameraPreview;
 import it.jaschke.alexandria.data.AlexandriaContract;
 import it.jaschke.alexandria.mCamera.BarcodeCaptureActivity;
 import it.jaschke.alexandria.services.BookService;
