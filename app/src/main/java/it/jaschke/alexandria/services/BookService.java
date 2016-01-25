@@ -73,6 +73,8 @@ public class BookService extends IntentService {
      */
     private void fetchBook(String ean) {
 
+        // TODO: 25/01/16 add block to check Network Connection here 
+
         if(ean.length()!=13){
             return;
         }
@@ -115,8 +117,6 @@ public class BookService extends IntentService {
             InputStream inputStream = urlConnection.getInputStream();
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
-                // TODO: 24/01/16 handle No Network Connection here?
-                Toast.makeText(this, "Input Stream NULL", Toast.LENGTH_LONG).show();
                 return;
             }
 
