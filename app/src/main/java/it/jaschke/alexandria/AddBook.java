@@ -103,7 +103,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                     }
                     //Once we have an ISBN, start a book intent
                     launchBookIntent(context, isbnBookCode);
-                     AddBook.this.restartLoader();
+                    AddBook.this.restartLoader();
 
                 } else {
                     Toast.makeText(getActivity(), "Sorry, no Internet Connection available",
@@ -176,7 +176,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                     //barcodeValue.setText(barcode.displayValue);
                     Log.d(TAG, "Barcode read: " + barcode.displayValue);
                     isbnBookCode = barcode.displayValue;
-                    launchBookIntent(getContext(), isbnBookCode);
+                    launchBookIntent(rootView.getContext(), isbnBookCode);
                     AddBook.this.restartLoader();
                 } else {
                     //statusMessage.setText(R.string.barcode_failure);
