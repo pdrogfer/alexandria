@@ -40,6 +40,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     private final String EAN_CONTENT="eanContent";
     private static final String SCAN_FORMAT = "scanFormat";
     private static final String SCAN_CONTENTS = "scanContents";
+    private String isbnBookCode;
 
     private String mScanFormat = "Format:";
     private String mScanContents = "Contents:";
@@ -74,6 +75,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         rootView = inflater.inflate(R.layout.fragment_add_book, container, false);
         ean = (EditText) rootView.findViewById(R.id.ean);
         final Context context = rootView.getContext();
+        isbnBookCode = null;
 
         ean.addTextChangedListener(new TextWatcher() {
             @Override
@@ -90,21 +92,18 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
             public void afterTextChanged(Editable s) {
 
                 if (areWeOnline(context)) {
-                    String ean =s.toString();
+                    isbnBookCode = s.toString();
                     //catch isbn10 numbers
-                    if(ean.length()==10 && !ean.startsWith("978")){
-                        ean="978"+ean;
+                    if(isbnBookCode.length()==10 && !isbnBookCode.startsWith("978")){
+                        isbnBookCode="978"+isbnBookCode;
                     }
-                    if(ean.length()<13){
+                    if(isbnBookCode.length()<13){
                         clearFields();
                         return;
                     }
                     //Once we have an ISBN, start a book intent
-                    Intent bookIntent = new Intent(context, BookService.class);
-                    bookIntent.putExtra(BookService.EAN, ean);
-                    bookIntent.setAction(BookService.FETCH_BOOK);
-                    context.startService(bookIntent);
-                    AddBook.this.restartLoader();
+                    launchBookIntent(context, isbnBookCode);
+                     AddBook.this.restartLoader();
 
                 } else {
                     Toast.makeText(getActivity(), "Sorry, no Internet Connection available",
@@ -130,14 +129,14 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 if (!areWeOnline(context)) {
                     // TODO: 25/01/16 Use an AlertDialog to notify user, not a Toast
                     text = "No internet Connection!";
+                    Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
                 } else {
-                    text = "This button should let you scan a book for its barcode!";
                     Intent intent = new Intent(getActivity(), BarcodeCaptureActivity.class);
                     intent.putExtra(BarcodeCaptureActivity.AutoFocus, useAutoFocus);
                     intent.putExtra(BarcodeCaptureActivity.UseFlash, useFlash);
                     startActivityForResult(intent, RC_BARCODE_CAPTURE);
+
                 }
-                Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -165,6 +164,42 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         }
 
         return rootView;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RC_BARCODE_CAPTURE) {
+            if (resultCode == CommonStatusCodes.SUCCESS) {
+                if (data != null) {
+                    Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
+                    //statusMessage.setText(R.string.barcode_success);
+                    //barcodeValue.setText(barcode.displayValue);
+                    Log.d(TAG, "Barcode read: " + barcode.displayValue);
+                    isbnBookCode = barcode.displayValue;
+                    launchBookIntent(getContext(), isbnBookCode);
+                    AddBook.this.restartLoader();
+                } else {
+                    //statusMessage.setText(R.string.barcode_failure);
+                    Log.d(TAG, "No barcode captured, intent data is null");
+                }
+            } else {
+                //statusMessage.setText(String.format(getString(R.string.barcode_error),
+                //        CommonStatusCodes.getStatusCodeString(resultCode)));
+                Log.d(TAG, "Error reading barcode: " + String.format(getString(R.string.barcode_error),
+                        CommonStatusCodes.getStatusCodeString(resultCode)));
+            }
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void launchBookIntent(Context context, String isbnBookCode) {
+        // Launch the service to retrieve book info on web service
+        Intent bookIntent = new Intent(context, BookService.class);
+        bookIntent.putExtra(BookService.EAN, isbnBookCode);
+        bookIntent.setAction(BookService.FETCH_BOOK);
+        context.startService(bookIntent);
     }
 
     private void restartLoader(){
@@ -238,30 +273,5 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         activity.setTitle(R.string.scan);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == RC_BARCODE_CAPTURE) {
-            if (resultCode == CommonStatusCodes.SUCCESS) {
-                if (data != null) {
-                    Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-                    //statusMessage.setText(R.string.barcode_success);
-                    //barcodeValue.setText(barcode.displayValue);
-                    Log.d(TAG, "Barcode read: " + barcode.displayValue);
-                } else {
-                    //statusMessage.setText(R.string.barcode_failure);
-                    Log.d(TAG, "No barcode captured, intent data is null");
-                }
-            } else {
-                //statusMessage.setText(String.format(getString(R.string.barcode_error),
-                //        CommonStatusCodes.getStatusCodeString(resultCode)));
-                Log.d(TAG, "Error reading barcode: " + String.format(getString(R.string.barcode_error),
-                                CommonStatusCodes.getStatusCodeString(resultCode)));
-            }
-        }
-        else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
     }
 }
