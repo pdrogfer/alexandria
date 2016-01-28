@@ -73,8 +73,6 @@ public class BookService extends IntentService {
      */
     private void fetchBook(String ean) {
 
-        // TODO: 25/01/16 add block to check Network Connection here 
-
         if(ean.length()!=13){
             return;
         }
