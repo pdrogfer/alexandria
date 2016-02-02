@@ -177,6 +177,7 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                     Log.d(TAG, "Barcode read: " + barcode.displayValue);
                     isbnBookCode = barcode.displayValue;
                     launchBookIntent(rootView.getContext(), isbnBookCode);
+                    ean.setText(isbnBookCode);
                     AddBook.this.restartLoader();
                 } else {
                     //statusMessage.setText(R.string.barcode_failure);
