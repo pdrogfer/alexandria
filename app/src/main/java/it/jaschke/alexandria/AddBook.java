@@ -3,6 +3,7 @@ package it.jaschke.alexandria;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -68,6 +69,11 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
         return netInfo != null && netInfo.isAvailable() && netInfo.isConnectedOrConnecting();
     }
 
+    private void offlineNotification(Context c) {
+        Toast.makeText(c, "You are offline. Scan functionality needs an internet connection",
+                Toast.LENGTH_LONG).show();
+    }
+
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -106,8 +112,9 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                     AddBook.this.restartLoader();
 
                 } else {
-                    Toast.makeText(getActivity(), "Sorry, no Internet Connection available",
-                            Toast.LENGTH_LONG).show();
+                    offlineNotification(context);
+//                    Toast.makeText(getActivity(), "Sorry, no Internet Connection available",
+//                            Toast.LENGTH_LONG).show();
                     return;
                 }
 
@@ -127,9 +134,9 @@ public class AddBook extends Fragment implements LoaderManager.LoaderCallbacks<C
                 //First check connection
                 String text;
                 if (!areWeOnline(context)) {
-                    // TODO: 25/01/16 Use an AlertDialog to notify user, not a Toast
-                    text = "No internet Connection!";
-                    Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+                    offlineNotification(context);
+                    //text = "No internet Connection!";
+                    //Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
                 } else {
                     Intent intent = new Intent(getActivity(), BarcodeCaptureActivity.class);
                     intent.putExtra(BarcodeCaptureActivity.AutoFocus, useAutoFocus);
